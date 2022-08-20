@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const Task = require('./task');
 
 //const User = mongoose.model('collection',schema) 
 /**
@@ -140,6 +141,15 @@ userSchema.pre('save', async function(next){ //we need to bind so no arrow opera
         cur_user.password =  await bcrypt.hash(cur_user.password,8)
     }    
     next();
+})
+
+//when user deletd themself, their task should also get deleted
+userSchema.pre('remove',async function(next){
+    const cur_user = this;
+    const a = await Task.deleteMany({owner:cur_user._id});
+    //console.log(a);
+    next();
+
 })
 const User = mongoose.model('User',userSchema)
 

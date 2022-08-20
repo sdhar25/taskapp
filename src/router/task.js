@@ -18,20 +18,22 @@ router.post('/task',auth,async(req,res)=>{
         
 })
 
-//list all tasks
-router.get('/tasks',async(req,res)=>{
+//list all tasks by logged in user
+router.get('/tasks',auth,async(req,res)=>{
     try{
-        const tasklist = await Task.find({});
+        const tasklist = await Task.find({owner:req.user._id});
         res.send(tasklist);
     }catch(err){
         res.status(400).send(err)
     }
    
 })
-//task by id
-router.get('/tasks/:id',async(req,res)=>{
+//task by id and logged in user
+router.get('/tasks/:id',auth,async(req,res)=>{
     try{
-        const tsk = await Task.findById(req.params.id);
+       // const tsk = await Task.findById(req.params.id);
+        const taskId = req.params.id;
+        const tsk = await Task.findOne({_id:taskId,owner:req.user._id});
         if(!tsk)
         {
             return res.send("no data found")
@@ -44,8 +46,8 @@ router.get('/tasks/:id',async(req,res)=>{
 })
 
 
-//update task
-router.patch('/tasks/:id',async(req,res)=>{
+//update task of logged in user
+router.patch('/tasks/:id',auth,async(req,res)=>{
     try{
         const bodyKeys = Object.keys(req.body);
         const reqKeys = ['description','completed'];
@@ -57,14 +59,17 @@ router.patch('/tasks/:id',async(req,res)=>{
         //const tsk = await Task.findByIdAndUpdate(req.params.id,req.body,{runValidators:true,new:true});
 
         //updating using middleware
-        const tsk = await Task.findById(req.params.id);
-        bodyKeys.forEach((bk)=>tsk[bk]=req.body[bk]);
-        await tsk.save();
+        //const tsk = await Task.findById(req.params.id);
+        const taskId = req.params.id;
+        const tsk = await Task.findOne({_id:taskId,owner:req.user._id});
+        //console.log(tsk);
 
         if(!tsk)
         {
             return res.status(400).send({error:"Data not found"})
         }
+        bodyKeys.forEach((bk)=>tsk[bk]=req.body[bk]);
+        await tsk.save();
         res.status(201).send(tsk);
     }catch(err)
     {
@@ -72,10 +77,13 @@ router.patch('/tasks/:id',async(req,res)=>{
     }
 })
 
-// delete task
-router.delete('/tasks/:id',async(req,res)=>{
+// delete task of logged in user
+router.delete('/tasks/:id',auth,async(req,res)=>{
     try{
-        const tsk = await Task.findByIdAndDelete(req.params.id);
+        //const tsk = await Task.findByIdAndDelete(req.params.id);
+        const taskId = req.params.id;
+        const tsk = await Task.findOneAndDelete({_id:taskId,owner:req.user._id});
+
         if(!tsk){
             return res.status(500).send({error:'No data found'})
         }

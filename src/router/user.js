@@ -193,11 +193,13 @@ router.patch('/users/me',auth,async(req,res)=>{
 //delete me
 router.delete('/users/me',auth,async(req,res)=>{
     try{
-        const usr = await User.findByIdAndDelete(req.user._id);
-        if(!usr){
-            return res.status(500).send({error:'No user found'})
-        }
-        res.status(200).send(usr);
+        // const usr = await User.findByIdAndDelete(req.user._id);
+        // if(!usr){
+        //     return res.status(500).send({error:'No user found'})
+        // }
+        // res.status(200).send(usr);
+        await req.user.remove()
+        res.send(req.user)
     }catch(err){
         res.status(400).send(err)
     }
