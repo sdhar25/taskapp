@@ -18,11 +18,49 @@ router.post('/task',auth,async(req,res)=>{
         
 })
 
+// eg GET {{url}}/tasks?completed=true&limit=2&skip=0&sortBy=createdAt:desc
+// or ?sortBy=completed:asc
 //list all tasks by logged in user
+//filteration
+/*If "req.query.completed" is "true" ( string not boolean) , then the comparison query i.e "===" will be executed first and will return a 
+boolean value true to the property "completed" which then will be added to match object.*/ 
+//limit and skip can comes in option properties
 router.get('/tasks',auth,async(req,res)=>{
+    //fetch true tasks when ?completed=true 
+    //need match object
+    const match={};
+    const sort={};
+    if(req.query.completed)
+    {
+        match.completed = req.query.completed === 'true'
+    }
+    if(req.query.sortBy)
+    {
+        const parts = req.query.sortBy.split(':');
+        sort[parts[0]]= parts[1] === 'desc' ? -1 : 1
+    }
     try{
-        const tasklist = await Task.find({owner:req.user._id});
-        res.send(tasklist);
+        // const tasklist = await Task.find({owner:req.user._id,
+        // completed:true});
+        // sortBy= createdAt_desc //it's depend upon you , we can have createdAt_asc
+
+        await req.user.populate({
+            path:'userTask',
+            match, //here match:match but it was same so shortcut used,
+            options:{
+                limit:parseInt(req.query.limit),
+                skip:parseInt(req.query.skip),
+                // sort:{
+                //     createdAt:-1
+                // }
+                sort
+                
+            },
+            
+        });
+
+        // res.send(tasklist);
+        res.send(req.user.userTask)
     }catch(err){
         res.status(400).send(err)
     }

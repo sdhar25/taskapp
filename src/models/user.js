@@ -64,7 +64,7 @@ const userSchema = new mongoose.Schema({
             }
         }
     ]
-})
+},{ timestamps: true})
 
 //getPublicProfile as toJSON //help to hide private data
 userSchema.methods.toJSON = function(){
